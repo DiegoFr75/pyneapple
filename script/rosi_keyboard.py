@@ -7,6 +7,7 @@ import numpy as np
 from rosi_defy.msg import RosiMovement
 from rosi_defy.msg import RosiMovementArray
 from rosi_defy.msg import ManipulatorJoints
+import time
 
 # ESC para finalizar
 # "+"  - aumenta a Velocidade
@@ -22,7 +23,7 @@ class RosiKeyboardClass():
     # class attributes
     max_translational_speed = 20 # in [m/s]
     max_rotational_speed = 50 # in [rad/s]
-    max_arms_rotational_speed = 0.70 # in [rad/s]
+    max_arms_rotational_speed = 0.7 # in [rad/s]
 
 	# how to obtain these values? see Mandow et al. COMPLETE THIS REFERENCE
     var_lambda = 0.965
@@ -45,6 +46,14 @@ class RosiKeyboardClass():
 		self.axes_lin_saved = 1
 		self.axes_ang_saved = 1
 
+		self.trigger_left = 0
+		self.trigger_right = 0
+
+		# A Button
+		self.button_L = 0
+		# X Button
+		self.button_R = 1
+
 		self.orig_settings = termios.tcgetattr(sys.stdin)
 		tty.setcbreak(sys.stdin)
 
@@ -65,16 +74,22 @@ class RosiKeyboardClass():
 		pressedKey = 0
 		while not rospy.is_shutdown():
 			# self.callback_Joy()
-			arm_command_list = RosiMovementArray()
-			traction_command_list = RosiMovementArray()
+			self.arm_command_list = RosiMovementArray()
+			self.traction_command_list = RosiMovementArray()
+
 			# Get pressed key
 			pressedKey = sys.stdin.read(1)[0]
 
-
 			if(pressedKey):
-				self.do_something(pressedKey)
-			
-			# mounting the lists
+				self.selectCommand(pressedKey)
+
+			# sleeps for a while
+			node_sleep_rate.sleep()
+
+		termios.tcsetattr(sys.stdin, termios.TCSADRAIN, self.orig_settings)
+
+    def sendCommand(self):
+		# mounting the lists
 			for i in range(4):
 
 				# ----- treating the traction commands
@@ -90,7 +105,7 @@ class RosiKeyboardClass():
 					traction_command.joint_var = self.omega_left
 
 				# appending the command to the list
-				traction_command_list.movement_array.append(traction_command)
+				self.traction_command_list.movement_array.append(traction_command)
 
 				# ----- treating the arms commands		
 				arm_command = RosiMovement()
@@ -105,68 +120,16 @@ class RosiKeyboardClass():
 					arm_command.joint_var = self.arm_rear_rotSpeed
 
 				# appending the command to the list
-				arm_command_list.movement_array.append(arm_command)
+				self.arm_command_list.movement_array.append(arm_command)
 
 			# publishing
-			self.pub_arm.publish(arm_command_list)		
-			self.pub_traction.publish(traction_command_list)
-
-
-			# sleeps for a while
-			node_sleep_rate.sleep()
-
-		termios.tcsetattr(sys.stdin, termios.TCSADRAIN, self.orig_settings)
+			self.pub_arm.publish(self.arm_command_list)		
+			self.pub_traction.publish(self.traction_command_list)
 	
-    def do_something(self, pressedKey):
-		trigger_left = 0
-		trigger_right = 0
-
-		# A Button
-		button_L = 0
-		# X Button
-		button_R = 0
-		
-		if(pressedKey == chr(27)):
-			termios.tcsetattr(sys.stdin, termios.TCSADRAIN, self.orig_settings)
-			sys.exit()
-		elif(pressedKey == "w"):
-			self.axes_lin = self.axes_lin_saved
-			self.axes_ang = 0
-		elif(pressedKey == "s"):
-			self.axes_lin = -1*self.axes_lin_saved
-			self.axes_ang = 0
-		elif(pressedKey == "q"):
-			self.axes_lin = self.axes_lin_saved
-			self.axes_ang = self.axes_ang_saved
-		elif(pressedKey == "e"):
-			self.axes_lin = self.axes_lin_saved
-			self.axes_ang = -1*self.axes_ang_saved
-		elif(pressedKey == "d"):
-			self.axes_lin = -1*self.axes_lin_saved
-			self.axes_ang = self.axes_ang_saved
-		elif(pressedKey == "a"):
-			self.axes_lin = -1*self.axes_lin_saved
-			self.axes_ang = -1*self.axes_ang_saved
-		elif(pressedKey == '+'):
-			self.axes_lin_saved += 0.1
-			if(self.axes_lin != 0):
-				self.axes_lin = self.axes_lin_saved
-			print("Velocidade atual: "+str(self.max_translational_speed*self.axes_lin_saved)+'m/s')
-		elif(pressedKey == '-'):
-			self.axes_lin_saved -= 0.1
-			if(self.axes_lin != 0):
-				self.axes_lin = self.axes_lin_saved
-			print("Velocidade atual: "+str(self.max_translational_speed*self.axes_lin_saved)+'m/s')
-		elif(self.axes_lin == 0 ):
-			self.axes_lin_saved -= 0.1
-			print("Velocidade atual: "+str(self.max_translational_speed*self.axes_lin_saved)+'m/s')
-		elif(pressedKey == 'r'):
-			self.axes_lin = 0
-			self.axes_ang = 0
-
+    def assembleAndSendCommands(self):
 		# treats triggers range
-		trigger_left = ((-1 * trigger_left) + 1) / 2
-		trigger_right = ((-1 * trigger_right) + 1) / 2
+		self.trigger_left = ((-1 * self.trigger_left) + 1) / 2
+		self.trigger_right = ((-1 * self.trigger_right) + 1) / 2
 
 		# computing desired linear and angular of the robot
 		vel_linear_x = self.max_translational_speed * self.axes_lin
@@ -186,17 +149,141 @@ class RosiKeyboardClass():
 
 		# -- computes arms command
 		# front arms
-		if button_R == 1:
-			self.arm_front_rotSpeed = self.max_arms_rotational_speed * trigger_right
+		if self.button_R == 1:
+			self.arm_front_rotSpeed = self.max_arms_rotational_speed * self.trigger_right
 		else:
-			self.arm_front_rotSpeed = -1 * self.max_arms_rotational_speed * trigger_right
+			self.arm_front_rotSpeed = -1 * self.max_arms_rotational_speed * self.trigger_right
 
 		# rear arms
-		if button_L == 1:
-			self.arm_rear_rotSpeed = -1 * self.max_arms_rotational_speed * trigger_left
+		if self.button_L == 1:
+			self.arm_rear_rotSpeed = -1 * self.max_arms_rotational_speed * self.trigger_left
 		else:
-			self.arm_rear_rotSpeed = self.max_arms_rotational_speed * trigger_left
+			self.arm_rear_rotSpeed = self.max_arms_rotational_speed * self.trigger_left
+		
+		self.sendCommand()
 
+    def stopAndClose(self):
+		termios.tcsetattr(sys.stdin, termios.TCSADRAIN, self.orig_settings)
+		self.axes_ang = 0
+		self.axes_lin = 0
+		self.trigger_right = 0
+		self.trigger_left = 0
+		self.assembleAndSendCommands()
+		sys.exit()
+
+    def moveFrontArmsUp(self):
+		self.trigger_right = 30
+		self.assembleAndSendCommands()
+
+    def moveFrontArmsDown(self):
+		self.trigger_right = -30
+		self.assembleAndSendCommands()
+
+    def stopFrontArms(self):
+		self.trigger_right = 0
+		self.assembleAndSendCommands()
+
+    def moveRearArmsUp(self):
+		self.trigger_left = 30
+		self.assembleAndSendCommands()
+
+    def moveRearArmsDown(self):
+		self.trigger_left = -30
+		self.assembleAndSendCommands()
+
+    def stopRearArms(self):
+		self.trigger_left = 0
+		self.assembleAndSendCommands()
+	
+    def moveForward(self):
+		self.axes_lin = self.axes_lin_saved
+		self.axes_ang = 0
+		self.assembleAndSendCommands()
+
+    def moveBackward(self):
+		self.axes_lin = -1*self.axes_lin_saved
+		self.axes_ang = 0
+		self.assembleAndSendCommands()
+
+    def rotateAntiClockwise(self):
+		self.axes_lin = self.axes_lin_saved
+		self.axes_ang = self.axes_ang_saved
+		self.assembleAndSendCommands()
+
+    def rotateClockwise(self):
+		self.axes_lin = self.axes_lin_saved
+		self.axes_ang = -1*self.axes_ang_saved
+		self.assembleAndSendCommands()
+
+    def stop(self):
+		self.axes_lin = 0
+		self.axes_ang = 0
+		self.assembleAndSendCommands()
+
+    def increaseSpeed(self):
+		self.axes_lin_saved += 0.1
+		if(self.axes_lin != 0):
+			self.axes_lin = self.axes_lin_saved
+		print("Velocidade atual: "+str(self.max_translational_speed*self.axes_lin_saved)+'m/s')
+		self.assembleAndSendCommands()
+
+    def decreaseSpeed(self):
+		self.axes_lin_saved -= 0.1
+		if(self.axes_lin != 0):
+			self.axes_lin = self.axes_lin_saved
+		print("Velocidade atual: "+str(self.max_translational_speed*self.axes_lin_saved)+'m/s')
+		self.assembleAndSendCommands()
+	
+    def climbStairs(self):
+		# self.moveRearArmsUp()
+		# time.sleep(0.5)
+		# self.stopRearArms()
+
+		# self.moveFrontArmsDown()
+		# time.sleep(0.5)
+		# self.stopFrontArms()
+		self.moveFrontArmsUp()
+		time.sleep(1.5)
+		self.stopFrontArms()
+
+		self.moveForward()
+		time.sleep(6)
+
+		self.moveFrontArmsDown()
+		time.sleep(2)
+		self.stopFrontArms()
+
+		self.moveRearArmsUp()
+		time.sleep(1)
+		self.stopRearArms()
+		time.sleep(6)
+		self.moveRearArmsDown()
+		time.sleep(1.5)
+		self.stopRearArms()
+
+		self.stop()
+
+		
+    def selectCommand(self, pressedKey):	
+		if(pressedKey == chr(27)):
+			self.stopAndClose()
+		elif(pressedKey == "w"):
+			self.moveForward()
+		elif(pressedKey == "s"):
+			self.moveBackward()
+		elif(pressedKey == "q"):
+			self.rotateAntiClockwise()
+		elif(pressedKey == "e"):
+			self.rotateClockwise()
+		elif(pressedKey == "r"):
+			self.stop()
+		elif(pressedKey == "f"):
+			self.climbStairs()
+		elif(pressedKey == '+'):
+			self.increaseSpeed()
+		elif(pressedKey == '-'):
+			self.decreaseSpeed()
+	
     # ---- Support Methods --------
 
     # -- Method for compute the skid-steer A kinematic matrix
@@ -208,9 +295,6 @@ class RosiKeyboardClass():
                             [(var_lambda*wheel_radius)/(2*ycir), -(var_lambda*wheel_radius)/(2*ycir)]])
 
         return matrix_A
-
-def callback_Joy(msg):
-    print(msg)
     
 if __name__ == "__main__":
     rospy.init_node('rosi_keyboard', anonymous = True)
