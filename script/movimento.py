@@ -3,12 +3,13 @@ import rospy
 import numpy as np
 from rosi_defy.msg import RosiMovement
 from rosi_defy.msg import RosiMovementArray
+import time
 
 class AutonomousClass():
 	# class attributes
-	max_translational_speed = 20 # in [m/s]
-	max_rotational_speed = 50 # in [rad/s]
-	max_arms_rotational_speed = 0.7 # in [rad/s]
+	max_translational_speed = 5 # in [m/s]
+	max_rotational_speed = 10 # in [rad/s]
+	max_arms_rotational_speed = 0.52 # in [rad/s]
 
 	# how to obtain these values? see Mandow et al. COMPLETE THIS REFERENCE
 	var_lambda = 0.965
@@ -24,8 +25,7 @@ class AutonomousClass():
 		self.axes_lin = 0
 		self.axes_lin_saved = 1
 		self.axes_ang_saved = 1
-		drive = 1
-		obstaculo = 0
+		self.drive = 1
 
 		# computing the kinematic A matrix
 		self.kin_matrix_A = self.compute_kinematicAMatrix(self.var_lambda, self.wheel_radius, self.ycir)
@@ -39,9 +39,9 @@ class AutonomousClass():
 
 		while not rospy.is_shutdown():
 			self.traction_command_list = RosiMovementArray()
-			if(drive):
-				self.autonomousDrive(drive)
-
+			if(self.drive):
+				self.autonomousDrive()
+				pass
 			node_sleep_rate.sleep()
 
 	def sendCommand(self):
@@ -66,13 +66,6 @@ class AutonomousClass():
 		self.pub_traction.publish(self.traction_command_list)
 
 	def calculateCommand(self):
-		
-		# Treats axes deadband
-		if self.axes_lin < 0.15 and self.axes_lin > -0.15:
-			self.axes_lin = 0
-
-		if self.axes_ang < 0.15 and self.axes_ang > -0.15:
-			self.axes_ang = 0
 
 		# treats triggers range
 		#trigger_left = ((-1 * trigger_left) + 1) / 2
@@ -96,39 +89,53 @@ class AutonomousClass():
 
 		self.sendCommand()
 
-	def moveForward(self):
+	def moveForward(self, tempo):
 		self.axes_lin = self.axes_lin_saved
 		self.axes_ang = 0
 		self.calculateCommand()
+		if(tempo):
+			time.sleep(tempo)
+			print("oi3")
+			self.stop()
 
-	def moveBackward(self):
+	def moveBackward(self, tempo):
 		self.axes_lin = -1*self.axes_lin_saved
 		self.axes_ang = 0
 		self.calculateCommand()
+		if(tempo):
+			time.sleep(tempo)
+			self.stop()
 
-	def rotateAntiClockwise(self):
+   	def rotateAntiClockwise(self, tempo):
 		self.axes_lin = self.axes_lin_saved
 		self.axes_ang = self.axes_ang_saved
 		self.calculateCommand()
+		if(tempo):
+			time.sleep(tempo)
+			self.stop()
 
-	def rotateClockwise(self):
+   	def rotateClockwise(self, tempo):
 		self.axes_lin = self.axes_lin_saved
 		self.axes_ang = -1*self.axes_ang_saved
 		self.calculateCommand()
+		if(tempo):
+			time.sleep(tempo)
+			self.stop()
 
-	def stop(self):
+   	def stop(self):
 		self.axes_lin = 0
 		self.axes_ang = 0
 		self.calculateCommand()
 
-	def autonomousDrive(self,drive):
-		if(drive):
-			self.moveForward()
-			#if(obstaculo #alterar o valor de obstaculo em algum canto rs):
-				#self.stop()
-				#rotacionar pra uma direcao
-				#dar re?
-			#	self.autonomousDrive() #nao garanto qe ta certo, so tem que andar de novo
+	def autonomousDrive(self):
+		self.drive = 0
+		self.moveForward(5)
+		print("oi")
+		#if(obstaculo #alterar o valor de obstaculo em algum canto rs):
+			#self.stop()
+			#rotacionar pra uma direcao
+			#dar re?
+			#self.autonomousDrive() #nao garanto qe ta certo, so tem que andar de novo
 
 
 	@staticmethod
