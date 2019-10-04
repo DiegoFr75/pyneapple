@@ -19,11 +19,14 @@ import time
 # "a" - diagonal esquerda para tras
 # "d" - diagonal direita para tras
 
+def getGrau(grau):
+	return (21*grau)/360
+
 class RosiKeyboardClass():
     # class attributes
-    max_translational_speed = 20 # in [m/s]
-    max_rotational_speed = 50 # in [rad/s]
-    max_arms_rotational_speed = 0.7 # in [rad/s]
+    max_translational_speed = 5 # in [m/s]
+    max_rotational_speed = 10 # in [rad/s]
+    max_arms_rotational_speed = 0.52 # in [rad/s]
 
 	# how to obtain these values? see Mandow et al. COMPLETE THIS REFERENCE
     var_lambda = 0.965
@@ -171,49 +174,75 @@ class RosiKeyboardClass():
 		self.assembleAndSendCommands()
 		sys.exit()
 
-    def moveFrontArmsUp(self):
+    def moveFrontArmsUp(self, tempo):
 		self.trigger_right = 30
 		self.assembleAndSendCommands()
+		if(tempo):
+			time.sleep(tempo)
+			self.stopFrontArms()
+		
 
-    def moveFrontArmsDown(self):
+    def moveFrontArmsDown(self, tempo):
 		self.trigger_right = -30
 		self.assembleAndSendCommands()
+		if(tempo):
+			time.sleep(tempo)
+			self.stopFrontArms()
 
     def stopFrontArms(self):
 		self.trigger_right = 0
 		self.assembleAndSendCommands()
 
-    def moveRearArmsUp(self):
+    def moveRearArmsUp(self, tempo):
 		self.trigger_left = 30
 		self.assembleAndSendCommands()
+		if(tempo):
+			time.sleep(tempo)
+			self.stopRearArms()
 
-    def moveRearArmsDown(self):
+    def moveRearArmsDown(self, tempo):
 		self.trigger_left = -30
 		self.assembleAndSendCommands()
+		if(tempo):
+			time.sleep(tempo)
+			self.stopRearArms()
 
     def stopRearArms(self):
 		self.trigger_left = 0
 		self.assembleAndSendCommands()
 	
-    def moveForward(self):
+    def moveForward(self, tempo):
 		self.axes_lin = self.axes_lin_saved
 		self.axes_ang = 0
 		self.assembleAndSendCommands()
+		if(tempo):
+			time.sleep(tempo)
+			self.stop()
 
-    def moveBackward(self):
+    def moveBackward(self, tempo):
 		self.axes_lin = -1*self.axes_lin_saved
 		self.axes_ang = 0
 		self.assembleAndSendCommands()
+		if(tempo):
+			time.sleep(tempo)
+			self.stop()
 
-    def rotateAntiClockwise(self):
+    def rotateAntiClockwise(self, tempo):
 		self.axes_lin = self.axes_lin_saved
 		self.axes_ang = self.axes_ang_saved
 		self.assembleAndSendCommands()
+		if(tempo):
+			time.sleep(tempo)
+			self.stop()
+		
 
-    def rotateClockwise(self):
+    def rotateClockwise(self, tempo):
 		self.axes_lin = self.axes_lin_saved
 		self.axes_ang = -1*self.axes_ang_saved
 		self.assembleAndSendCommands()
+		if(tempo):
+			time.sleep(tempo)
+			self.stop()
 
     def stop(self):
 		self.axes_lin = 0
@@ -235,46 +264,59 @@ class RosiKeyboardClass():
 		self.assembleAndSendCommands()
 	
     def climbStairs(self):
-		# self.moveRearArmsUp()
-		# time.sleep(0.5)
-		# self.stopRearArms()
+		# self.moveFrontArmsUp(getGrau(90))
+		self.moveForward(0)
 
-		# self.moveFrontArmsDown()
-		# time.sleep(0.5)
-		# self.stopFrontArms()
-		self.moveFrontArmsUp()
-		time.sleep(1.5)
-		self.stopFrontArms()
+		print("1")
+		self.moveFrontArmsUp(4)
+	
+		time.sleep(14.7)
 
-		self.moveForward()
-		time.sleep(6)
+		print("2")
+		self.moveFrontArmsDown(15)
+		
+		# Descer braco de tras
+		print("3")
+		self.moveRearArmsUp(4)
 
-		self.moveFrontArmsDown()
-		time.sleep(2)
-		self.stopFrontArms()
+		time.sleep(10)
 
-		self.moveRearArmsUp()
-		time.sleep(1)
-		self.stopRearArms()
-		time.sleep(6)
-		self.moveRearArmsDown()
-		time.sleep(1.5)
-		self.stopRearArms()
+		# print("bracos da frente Down")
+		# self.moveFrontArmsDown(19)
+		
+		# print("bracos de tras Up")
+		# self.moveRearArmsDown(2)
+		print("4")
+		time.sleep(3)
 
-		self.stop()
+		print("5")
+		self.moveRearArmsUp(1)
+
+		for i in range(30):
+			self.moveRearArmsDown(0.1)
+			time.sleep(0.2)
+			print("entrei")
+		
+		# print("6")
+		# self.moveFrontArmsDown(4)
+		print("7")
+		self.moveRearArmsDown(0)
+		time.sleep(25)
+		self.moveFrontArmsDown(getGrau(50))
+		self.moveRearArmsUp(getGrau(90))
 
 		
     def selectCommand(self, pressedKey):	
 		if(pressedKey == chr(27)):
 			self.stopAndClose()
 		elif(pressedKey == "w"):
-			self.moveForward()
+			self.moveForward(0)
 		elif(pressedKey == "s"):
-			self.moveBackward()
+			self.moveBackward(0)
 		elif(pressedKey == "q"):
-			self.rotateAntiClockwise()
+			self.rotateAntiClockwise(0)
 		elif(pressedKey == "e"):
-			self.rotateClockwise()
+			self.rotateClockwise(0)
 		elif(pressedKey == "r"):
 			self.stop()
 		elif(pressedKey == "f"):
