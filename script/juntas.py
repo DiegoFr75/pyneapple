@@ -24,9 +24,9 @@ def mexe_junta(position_list=[pi/2,0, 0, 0, pi/2, 0], max_cont=50):
         hello_str = "hello world %s" % rospy.get_time()
         
         arg = ManipulatorJoints()
-        # arg.header.seq = 0
-        # arg.header.stamp.secs = 0 
-        # arg.header.stamp.nsecs = 0
+        arg.header.seq = 1
+        arg.header.stamp.secs = 0.2 
+        arg.header.stamp.nsecs = 1000
 
         # rospy.loginfo(position)
 
@@ -47,7 +47,10 @@ if __name__ == '__main__':
     try:
         rospy.init_node('mexe_junta', anonymous=True)
         mexe_junta()
-        mexe_junta([pi/2,0, -pi/3.5, 0, pi/2, 0], max_cont=25)
+        mexe_junta([pi/2,-0.225, -pi/10, 0.3, pi/2, 0], max_cont=25)
+        mexe_junta()
+        mexe_junta([pi/2, 0, pi/1.77, 0, pi/2, 0], max_cont=25)
+        mexe_junta([pi/2,-pi/2, pi/1.77, 0, pi/2, 0])
         mexe_junta()
     except rospy.ROSInterruptException:
         pass
