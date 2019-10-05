@@ -64,6 +64,7 @@ class RosSelfDrive():
 		self.button_R = 1
 		
 		self.rotate = 0
+		self.drive = 1
 
 		# computing the kinematic A matrix
 		self.kin_matrix_A = self.compute_kinematicAMatrix(self.var_lambda, self.wheel_radius, self.ycir)
@@ -85,34 +86,43 @@ class RosSelfDrive():
 		rospy.spin()
 
 	def moveRosi(self, msg):
-		print(msg.data)
-		if(msg.data == "forward"):
-			self.moveForward(0)
-		elif(msg.data == "backward"):
-			self.moveBackward(0)
-		elif(msg.data == "stop"):
-			self.stop()
-		elif(msg.data == "left"):
-			self.rotateAntiClockwise(0)
-		elif(msg.data == "right"):
-			self.rotateClockwise(0)
-		elif(msg.data == "climb"):
-			self.climbStairs()
+		if(msg.data == "start"):
+			self.rotateClockwise(8)
+			self.moveForward(90)
+			self.rotateAntiClockwise(9)
+			self.moveForward(500)
 
-	def getGpsData(self,msg):
-		self.x = msg.latitude
-		self.y = msg.longitude
-		self.z = msg.altitude
-		if((self.x >= 0.5700 and self.x <= 0.5800) and (self.y <= -0.0500 and self.y >= -0.0600)):
-			self.direction_pub.publish("right")
-		if((self.x == 0.5316 and self.y >= -0.0449)):
-			self.direction_pub.publish("forward")
-		if(self.x == -1.9859 and self.y == 2.4361):
-			self.direction_pub.publish("left")
-		if(self.x == -1.9097 and self.y == 2.1271):
-			self.direction_pub.publish("forward")
-
+		# print(msg.data)
+		# print(self.x, self.y, self.z)
+		# if(msg.data == "forward"):
+		# 	self.moveForward(0)
+		# elif(msg.data == "backward"):
+		# 	self.moveBackward(0)
+		# elif(msg.data == "stop"):
+		# 	self.stop()
+		# elif(msg.data == "left" and self.drive):
+		# 	self.rotateAntiClockwise(0)
+		# elif(msg.data == "right"):
+		# 	self.rotateClockwise(3)
+		# 	# self.rotateAntiClockwise(0)
+		# elif(msg.data == "climb"):
+		# 	self.climbStairs()
 		
+	def getGpsData(self,msg):
+		precision = "%0.4f"
+		self.x = float(precision % (msg.latitude))
+		self.y = float(precision % (msg.longitude))
+		self.z = float(precision % (msg.altitude))
+
+		if(self.drive):
+			self.direction_pub.publish("start")
+		# if(self.x >= 0.5400 and self.x <= 0.5450):
+		# 	self.direction_pub.publish("forward")
+		# if(self.x <= -1.5127 and self.x >= -1.5200):
+		# 	self.direction_pub.publish("left")
+		# if((self.x >= -1.1850 and self.x <= -1.1800)):
+		# 	self.direction_pub.publish("forward")
+
 	def sendCommand(self):
 		# mounting the lists
 			for i in range(4):
@@ -250,9 +260,11 @@ class RosSelfDrive():
 		self.axes_lin = self.axes_lin_saved
 		self.axes_ang = 0
 		self.rotate = 0
+		self.drive = 0
 		self.assembleAndSendCommands()
 		if(tempo):
 			rospy.sleep(tempo)
+			self.drive = 1
 			self.stop()
 
 	def moveBackward(self, tempo):
@@ -265,9 +277,10 @@ class RosSelfDrive():
 			self.stop()
 
 	def rotateAntiClockwise(self, tempo):
-		self.axes_lin = -1*self.axes_lin_saved
+		self.axes_lin = self.axes_lin_saved
 		self.axes_ang = self.axes_ang_saved
 		self.rotate = 2
+		self.drive = 0
 		self.assembleAndSendCommands()
 		if(tempo):
 			rospy.sleep(tempo)
@@ -277,6 +290,7 @@ class RosSelfDrive():
 		self.axes_lin = self.axes_lin_saved
 		self.axes_ang = -1*self.axes_ang_saved
 		self.rotate = 1
+		self.drive = 0
 		self.assembleAndSendCommands()
 		if(tempo):
 			rospy.sleep(tempo)
