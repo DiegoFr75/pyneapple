@@ -1,0 +1,9 @@
+<launch>
+
+    <!-- running the master code of the movements of the robot -->
+    <node name="rosi_movement_node" pkg="pyneapple" type="rosi_movement" respawn="true" />
+
+    <!-- running the scenario parameters -->
+    <rosparam command="load" file="$(find rosi_defy)/config/simulation_parameters.yaml" />
+
+</launch>
