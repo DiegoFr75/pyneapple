@@ -18,6 +18,8 @@ import time
 # "e" - diagonal direita para frente
 # "a" - diagonal esquerda para tras
 # "d" - diagonal direita para tras
+# "p" - preparar para descer escada
+# "b" - ajustar posicao apos descer
 
 def getGrau(grau):
 	return (21*grau)/360
@@ -83,7 +85,9 @@ class RosiKeyboardClass():
 			# Get pressed key
 			pressedKey = sys.stdin.read(1)[0]
 
+
 			if(pressedKey):
+
 				self.selectCommand(pressedKey)
 
 			# sleeps for a while
@@ -262,22 +266,30 @@ class RosiKeyboardClass():
 			self.axes_lin = self.axes_lin_saved
 		print("Velocidade atual: "+str(self.max_translational_speed*self.axes_lin_saved)+'m/s')
 		self.assembleAndSendCommands()
-	
+
+    def prepareToGoToFloor(self):
+		self.moveRearArmsUp(getGrau(70))
+
+    def backToFloor(self):
+		self.moveRearArmsDown(getGrau(40))
+
     def climbStairs(self):
 		# self.moveFrontArmsUp(getGrau(90))
 		self.moveForward(0)
 
 		print("1")
 		self.moveFrontArmsUp(4)
+		self.moveRearArmsDown(4)
 	
-		time.sleep(14.7)
+		time.sleep(17)
 
 		print("2")
 		self.moveFrontArmsDown(15)
-		
+		time.sleep(5)
+
 		# Descer braco de tras
 		print("3")
-		self.moveRearArmsUp(4)
+		self.moveRearArmsUp(8)
 
 		time.sleep(10)
 
@@ -287,7 +299,8 @@ class RosiKeyboardClass():
 		# print("bracos de tras Up")
 		# self.moveRearArmsDown(2)
 		print("4")
-		time.sleep(3)
+		time.sleep(4)
+		self.moveFrontArmsDown(getGrau(120))
 
 		print("5")
 		self.moveRearArmsUp(1)
@@ -302,8 +315,7 @@ class RosiKeyboardClass():
 		print("7")
 		self.moveRearArmsDown(0)
 		time.sleep(25)
-		self.moveFrontArmsDown(getGrau(50))
-		self.moveRearArmsUp(getGrau(90))
+		self.moveRearArmsUp(getGrau(180))
 
 		
     def selectCommand(self, pressedKey):	
@@ -325,6 +337,10 @@ class RosiKeyboardClass():
 			self.increaseSpeed()
 		elif(pressedKey == '-'):
 			self.decreaseSpeed()
+		elif(pressedKey == 'b'):
+			self.backToFloor()
+		elif(pressedKey == 'p'):
+			self.prepareToGoToFloor()
 	
     # ---- Support Methods --------
 
