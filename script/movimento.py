@@ -1,82 +1,160 @@
 #!/usr/bin/env python
+import tty
+import sys
+import termios
 import rospy
 import numpy as np
 from rosi_defy.msg import RosiMovement
 from rosi_defy.msg import RosiMovementArray
+from rosi_defy.msg import ManipulatorJoints
+from sensor_msgs.msg import NavSatFix
+from std_msgs.msg import String
 
-class AutonomousClass():
-	# class attributes
-	max_translational_speed = 20 # in [m/s]
-	max_rotational_speed = 50 # in [rad/s]
-	max_arms_rotational_speed = 0.7 # in [rad/s]
+# ESC para finalizar
+# "+"  - aumenta a Velocidade
+# "-" - diminui a Velocidade
+# "w" - segue em frente
+# "s" - re
+# "q" - diagonal esquerda para frente
+# "e" - diagonal direita para frente
+# "a" - diagonal esquerda para tras
+# "d" - diagonal direita para tras
+
+def getGrau(grau):
+	return (21*grau)/360
+
+def bigger(A, B):
+	if A > B:
+		return A
+	return B
+
+class RosSelfDrive():
+    # class attributes
+	max_translational_speed = 5 # in [m/s]
+	max_rotational_speed = 10 # in [rad/s]
+	max_arms_rotational_speed = 0.52 # in [rad/s]
 
 	# how to obtain these values? see Mandow et al. COMPLETE THIS REFERENCE
 	var_lambda = 0.965
 	wheel_radius = 0.1324
 	ycir = 0.531
 
+	# class constructor
 	def __init__(self):
 
 		# initializing some attributes
+		self.x, self.y, self.z = (0,0,0)
 		self.omega_left = 0
 		self.omega_right = 0
-		self.axes_ang = 0
+		self.arm_front_rotSpeed = 0
+		self.arm_rear_rotSpeed = 0
+
 		self.axes_lin = 0
+		self.axes_ang = 0
+
 		self.axes_lin_saved = 1
 		self.axes_ang_saved = 1
-		drive = 1
-		obstaculo = 0
+
+		self.trigger_left = 0
+		self.trigger_right = 0
+
+		# A Button
+		self.button_L = 0
+		# X Button
+		self.button_R = 1
+		
+		self.rotate = 0
 
 		# computing the kinematic A matrix
 		self.kin_matrix_A = self.compute_kinematicAMatrix(self.var_lambda, self.wheel_radius, self.ycir)
 
 		# sends a message to the user
-		rospy.loginfo('Rosi Movement started')
+		rospy.loginfo('ros_selfdrive node started')
 
 		# registering to publishers
 		self.pub_traction = rospy.Publisher('/rosi/command_traction_speed', RosiMovementArray, queue_size=1)
-		node_sleep_rate = rospy.Rate(10)
+		self.pub_arm = rospy.Publisher('/rosi/command_arms_speed', RosiMovementArray, queue_size=1)
+		self.sub_gps = rospy.Subscriber("/sensor/gps", NavSatFix, self.getGpsData)
 
-		while not rospy.is_shutdown():
-			self.traction_command_list = RosiMovementArray()
-			if(drive):
-				self.autonomousDrive(drive)
+		self.direction_pub = rospy.Publisher("/direction", String, queue_size=10)
+		self.direction_sub = rospy.Subscriber("/direction", String, self.moveRosi)
 
-			node_sleep_rate.sleep()
+		self.arm_command_list = RosiMovementArray()
+		self.traction_command_list = RosiMovementArray()
 
+		rospy.spin()
+
+	def moveRosi(self, msg):
+		print(msg.data)
+		if(msg.data == "forward"):
+			self.moveForward(0)
+		elif(msg.data == "backward"):
+			self.moveBackward(0)
+		elif(msg.data == "stop"):
+			self.stop()
+		elif(msg.data == "left"):
+			self.rotateAntiClockwise(0)
+		elif(msg.data == "right"):
+			self.rotateClockwise(0)
+		elif(msg.data == "climb"):
+			self.climbStairs()
+
+	def getGpsData(self,msg):
+		self.x = msg.latitude
+		self.y = msg.longitude
+		self.z = msg.altitude
+		if((self.x >= 0.5700 and self.x <= 0.5800) and (self.y <= -0.0500 and self.y >= -0.0600)):
+			self.direction_pub.publish("right")
+		if((self.x == 0.5316 and self.y >= -0.0449)):
+			self.direction_pub.publish("forward")
+		if(self.x == -1.9859 and self.y == 2.4361):
+			self.direction_pub.publish("left")
+		if(self.x == -1.9097 and self.y == 2.1271):
+			self.direction_pub.publish("forward")
+
+		
 	def sendCommand(self):
 		# mounting the lists
-		for i in range(4):
+			for i in range(4):
 
-		# ----- treating the traction commands
-			traction_command = RosiMovement()
+				# ----- treating the traction commands
+				traction_command = RosiMovement()
 
-			# mount traction command list
-			traction_command.nodeID = i+1
+				# mount traction command list
+				traction_command.nodeID = i+1
 
-			# separates each traction side command
-			if i < 2:
-				traction_command.joint_var = self.omega_right
-			else:
-				traction_command.joint_var = self.omega_left
+				# separates each traction side command
+				if i < 2:
+					traction_command.joint_var = self.omega_right
+				else:
+					traction_command.joint_var = self.omega_left
 
-			# appending the command to the list
-			self.traction_command_list.movement_array.append(traction_command)
+				# appending the command to the list
+				self.traction_command_list.movement_array.append(traction_command)
 
-		self.pub_traction.publish(self.traction_command_list)
-
-	def calculateCommand(self):
+				# ----- treating the arms commands		
+				arm_command = RosiMovement()
 		
-		# Treats axes deadband
-		if self.axes_lin < 0.15 and self.axes_lin > -0.15:
-			self.axes_lin = 0
+				# mounting arm command list
+				arm_command.nodeID = i+1
+				
+				# separates each arm side command
+				if i == 0 or i == 2:
+					arm_command.joint_var = self.arm_front_rotSpeed
+				else:
+					arm_command.joint_var = self.arm_rear_rotSpeed
 
-		if self.axes_ang < 0.15 and self.axes_ang > -0.15:
-			self.axes_ang = 0
+				# appending the command to the list
+				self.arm_command_list.movement_array.append(arm_command)
 
+			# publishing
+			self.pub_arm.publish(self.arm_command_list)		
+			self.pub_traction.publish(self.traction_command_list)
+	
+	def assembleAndSendCommands(self):
 		# treats triggers range
-		#trigger_left = ((-1 * trigger_left) + 1) / 2
-		#trigger_right = ((-1 * trigger_right) + 1) / 2
+		self.trigger_left = ((-1 * self.trigger_left) + 1) / 2
+		self.trigger_right = ((-1 * self.trigger_right) + 1) / 2
 
 		# computing desired linear and angular of the robot
 		vel_linear_x = self.max_translational_speed * self.axes_lin
@@ -91,63 +169,180 @@ class AutonomousClass():
 		x = np.linalg.lstsq(self.kin_matrix_A, b, rcond=-1)[0]
 
 		# query the sides velocities
-		self.omega_right = np.deg2rad(x[0][0])
-		self.omega_left = np.deg2rad(x[1][0])
+		if(self.rotate == 1): # Right
+			value = bigger(np.deg2rad(x[0][0]), np.deg2rad(x[1][0]))
+			self.omega_left = value
+			self.omega_right = -value
+		elif(self.rotate == 2): # Left
+			value = bigger(np.deg2rad(x[0][0]), np.deg2rad(x[1][0]))
+			self.omega_left = -value
+			self.omega_right = value
+		else:
+			self.omega_right = np.deg2rad(x[0][0])
+			self.omega_left = np.deg2rad(x[1][0])
 
+		# -- computes arms command
+		# front arms
+		if self.button_R == 1:
+			self.arm_front_rotSpeed = self.max_arms_rotational_speed * self.trigger_right
+		else:
+			self.arm_front_rotSpeed = -1 * self.max_arms_rotational_speed * self.trigger_right
+
+		# rear arms
+		if self.button_L == 1:
+			self.arm_rear_rotSpeed = -1 * self.max_arms_rotational_speed * self.trigger_left
+		else:
+			self.arm_rear_rotSpeed = self.max_arms_rotational_speed * self.trigger_left
+		
 		self.sendCommand()
 
-	def moveForward(self):
+	def stopAndClose(self):
+		self.axes_ang = 0
+		self.axes_lin = 0
+		self.trigger_right = 0
+		self.trigger_left = 0
+		self.assembleAndSendCommands()
+		sys.exit()
+
+	def moveFrontArmsUp(self, tempo):
+		self.trigger_right = 30
+		self.rotate = 0
+		self.assembleAndSendCommands()
+		if(tempo):
+			rospy.sleep(tempo)
+			self.stopFrontArms()
+		
+	def moveFrontArmsDown(self, tempo):
+		self.trigger_right = -30
+		self.rotate = 0
+		self.assembleAndSendCommands()
+		if(tempo):
+			rospy.sleep(tempo)
+			self.stopFrontArms()
+
+	def stopFrontArms(self):
+		self.trigger_right = 0
+		self.rotate = 0
+		self.assembleAndSendCommands()
+
+	def moveRearArmsUp(self, tempo):
+		self.trigger_left = 30
+		self.rotate = 0
+		self.assembleAndSendCommands()
+		if(tempo):
+			rospy.sleep(tempo)
+			self.stopRearArms()
+
+	def moveRearArmsDown(self, tempo):
+		self.trigger_left = -30
+		self.rotate = 0
+		self.assembleAndSendCommands()
+		if(tempo):
+			rospy.sleep(tempo)
+			self.stopRearArms()
+
+	def stopRearArms(self):
+		self.trigger_left = 0
+		self.rotate = 0
+		self.assembleAndSendCommands()
+	
+	def moveForward(self, tempo):
 		self.axes_lin = self.axes_lin_saved
 		self.axes_ang = 0
-		self.calculateCommand()
+		self.rotate = 0
+		self.assembleAndSendCommands()
+		if(tempo):
+			rospy.sleep(tempo)
+			self.stop()
 
-	def moveBackward(self):
+	def moveBackward(self, tempo):
 		self.axes_lin = -1*self.axes_lin_saved
 		self.axes_ang = 0
-		self.calculateCommand()
+		self.rotate = 0
+		self.assembleAndSendCommands()
+		if(tempo):
+			rospy.sleep(tempo)
+			self.stop()
 
-	def rotateAntiClockwise(self):
-		self.axes_lin = self.axes_lin_saved
+	def rotateAntiClockwise(self, tempo):
+		self.axes_lin = -1*self.axes_lin_saved
 		self.axes_ang = self.axes_ang_saved
-		self.calculateCommand()
+		self.rotate = 2
+		self.assembleAndSendCommands()
+		if(tempo):
+			rospy.sleep(tempo)
+			self.stop()
 
-	def rotateClockwise(self):
+	def rotateClockwise(self, tempo):
 		self.axes_lin = self.axes_lin_saved
 		self.axes_ang = -1*self.axes_ang_saved
-		self.calculateCommand()
+		self.rotate = 1
+		self.assembleAndSendCommands()
+		if(tempo):
+			rospy.sleep(tempo)
+			self.stop()
 
 	def stop(self):
 		self.axes_lin = 0
 		self.axes_ang = 0
-		self.calculateCommand()
+		self.rotate = 0
+		self.assembleAndSendCommands()
 
-	def autonomousDrive(self,drive):
-		if(drive):
-			self.moveForward()
-			#if(obstaculo #alterar o valor de obstaculo em algum canto rs):
-				#self.stop()
-				#rotacionar pra uma direcao
-				#dar re?
-			#	self.autonomousDrive() #nao garanto qe ta certo, so tem que andar de novo
+	def increaseSpeed(self):
+		self.axes_lin_saved += 0.1
+		if(self.axes_lin != 0):
+			self.axes_lin = self.axes_lin_saved
+		print("Velocidade atual: "+str(self.max_translational_speed*self.axes_lin_saved)+'m/s')
+		self.assembleAndSendCommands()
 
+	def decreaseSpeed(self):
+		self.axes_lin_saved -= 0.1
+		if(self.axes_lin != 0):
+			self.axes_lin = self.axes_lin_saved
+		print("Velocidade atual: "+str(self.max_translational_speed*self.axes_lin_saved)+'m/s')
+		self.assembleAndSendCommands()
+	
+	def climbStairs(self):
+		self.rotate = 0
+		self.moveForward(0)
+		self.moveFrontArmsUp(4)
+	
+		rospy.sleep(14.7)
+		self.moveFrontArmsDown(15)
+		
+		# Descer braco de tras
+		self.moveRearArmsUp(4)
 
+		rospy.sleep(10)
+		rospy.sleep(3)
+		self.moveRearArmsUp(1)
+
+		for i in range(30):
+			self.moveRearArmsDown(0.1)
+			rospy.sleep(0.2)
+	
+		self.moveRearArmsDown(0)
+		rospy.sleep(25)
+		self.moveFrontArmsDown(getGrau(50))
+		self.moveRearArmsUp(getGrau(90))
+		self.stopAndClose()
+
+    # ---- Support Methods --------
+
+    # -- Method for compute the skid-steer A kinematic matrix
 	@staticmethod
 	def compute_kinematicAMatrix(var_lambda, wheel_radius, ycir):
-		# kinematic A matrix 
+        # kinematic A matrix 
 		matrix_A = np.array([[var_lambda*wheel_radius/2, var_lambda*wheel_radius/2],
-								[(var_lambda*wheel_radius)/(2*ycir), -(var_lambda*wheel_radius)/(2*ycir)]])
+                            [(var_lambda*wheel_radius)/(2*ycir), -(var_lambda*wheel_radius)/(2*ycir)]])
 		return matrix_A
-
-	
+    
 if __name__ == "__main__":
-    rospy.init_node('rosi_movement', anonymous = True)
+    rospy.init_node('rosi_selfdrive', anonymous = True)
 
     try:
-		node_obj = AutonomousClass()
-
+		node_obj = RosSelfDrive()
     except Exception as erro:
         print(erro)
         pass
-
-
 
