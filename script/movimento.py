@@ -84,13 +84,20 @@ class RosSelfDrive():
 		self.traction_command_list = RosiMovementArray()
 
 		rospy.spin()
+	def printTudo(self):
+		print(self.rotate, self.axes_lin, self.axes_ang)
 
 	def moveRosi(self, msg):
 		if(msg.data == "start"):
-			self.rotateClockwise(8)
-			self.moveForward(90)
-			self.rotateAntiClockwise(9)
-			self.moveForward(500)
+			print(1)
+			self.rotateClockwise(11)
+			print(2)
+			self.moveForward(110)
+			print(3)
+			# print(self.rotate, self.l)
+			self.rotateAntiClockwise(40)
+			print(4)
+			self.moveForward(1000)
 
 		# print(msg.data)
 		# print(self.x, self.y, self.z)
@@ -264,7 +271,6 @@ class RosSelfDrive():
 		self.assembleAndSendCommands()
 		if(tempo):
 			rospy.sleep(tempo)
-			self.drive = 1
 			self.stop()
 
 	def moveBackward(self, tempo):
