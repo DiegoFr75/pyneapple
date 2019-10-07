@@ -67,3 +67,9 @@ To compile your catkin workspace.
   - /ur5/forceTorqueSensorOutput
   - /sensor/Kinect_rgb
 
+### To Execute:
+
+~~~
+cd launch
+roslaunch start.launch
+~~~
