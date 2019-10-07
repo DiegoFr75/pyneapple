@@ -99,7 +99,7 @@ class RosSelfDrive():
 			self.moveForward(224)
 			self.stop()
 			#inserir movimento robo fogo 1
-			toca_fogo1()
+			self.toca_fogo1()
 			self.rotateAntiClockwise(6)
 			self.moveForward(15)
 			self.stop()
@@ -137,10 +137,11 @@ class RosSelfDrive():
 			self.moveForward(110)
 			self.stop()
 			#inserir codigo de subida de escada
-			climbStairs()
+			self.climbStairs()
 			self.moveForward(100)
 			self.moveBackward(85)
 			#inserir codigo de descida
+
 
 
 		# print(msg.data)
@@ -409,55 +410,55 @@ class RosSelfDrive():
 		time.sleep(25)
 		self.moveRearArmsUp(getGrau(180))
 	
-	# funções do código das juntas adicionadas aqui
-	def mexe_junta(position_list=[pi/2,0, 0, 0, pi/2, 0], max_cont=50):
-	    pub = rospy.Publisher('/ur5/jointsPosTargetCommand', ManipulatorJoints, queue_size=10)
-	    # rospy.init_node('mexe_junta', anonymous=True)
-	    rate = rospy.Rate(10) # 10hz
+# funções do código das juntas adicionadas aqui
+def mexe_junta(position_list=[pi/2,0, 0, 0, pi/2, 0], max_cont=50):
+    pub = rospy.Publisher('/ur5/jointsPosTargetCommand', ManipulatorJoints, queue_size=10)
+    # rospy.init_node('mexe_junta', anonymous=True)
+    rate = rospy.Rate(10) # 10hz
 
-    cont = 0
-    while not rospy.is_shutdown() and cont<max_cont:
-        hello_str = "hello world %s" % rospy.get_time()
-        
-        arg = ManipulatorJoints()
-        arg.header.seq = 1
-        arg.header.stamp.secs = 0.2 
-        arg.header.stamp.nsecs = 1000
+	cont = 0
+	while not rospy.is_shutdown() and cont<max_cont:
+	    hello_str = "hello world %s" % rospy.get_time()
+	    
+	    arg = ManipulatorJoints()
+	    arg.header.seq = 1
+	    arg.header.stamp.secs = 0.2 
+	    arg.header.stamp.nsecs = 1000
 
-        # rospy.loginfo(position)
+	    # rospy.loginfo(position)
 
-        position = pi/2
+	    position = pi/2
 
-        arg.joint_variable = position_list
-        pub.publish(arg.header, arg.joint_variable)
-        #print(hello_str)
-        #print(cont)
-        cont+=1
-        rate.sleep()
+	    arg.joint_variable = position_list
+	    pub.publish(arg.header, arg.joint_variable)
+	    #print(hello_str)
+	    #print(cont)
+	    cont+=1
+	    rate.sleep()
 
-	def toca_fogo1():
-	    mexe_junta()
-	    mexe_junta([pi/2,-0.225, 0, 0.3, pi/2, 0])
-	    mexe_junta([pi/2,-0.225, -pi/28, 0.3, pi/2, 0])
-	    mexe_junta([pi/2,-0.38, -pi/28, 0.3, pi/2, 0])
-	    mexe_junta([pi/2,-0.48, -pi/23, 0.3, pi/2, 0], max_cont=25)
-	    mexe_junta()
-	    mexe_junta([pi/2, 0, pi/1.77, 0, pi/2, 0], max_cont=25)
-	    mexe_junta([pi/2,-pi/2, pi/1.7, 0, pi/2, 0])
-	    mexe_junta([pi/2,-pi/2, pi/1.92, 0, pi/2, 0])
-	    mexe_junta([pi/2,-pi/2, pi/1.7, 0, pi/2, 0])
-	    mexe_junta()
+def toca_fogo1():
+    mexe_junta()
+    mexe_junta([pi/2,-0.225, 0, 0.3, pi/2, 0])
+    mexe_junta([pi/2,-0.225, -pi/28, 0.3, pi/2, 0])
+    mexe_junta([pi/2,-0.38, -pi/28, 0.3, pi/2, 0])
+    mexe_junta([pi/2,-0.48, -pi/23, 0.3, pi/2, 0], max_cont=25)
+    mexe_junta()
+    mexe_junta([pi/2, 0, pi/1.77, 0, pi/2, 0], max_cont=25)
+    mexe_junta([pi/2,-pi/2, pi/1.7, 0, pi/2, 0])
+    mexe_junta([pi/2,-pi/2, pi/1.92, 0, pi/2, 0])
+    mexe_junta([pi/2,-pi/2, pi/1.7, 0, pi/2, 0])
+    mexe_junta()
 
-	def toca_fogo2():
-	    mexe_junta([pi/2, 0, 0, 0, -pi/2, 0])
-	    mexe_junta([pi/2, 0.225, 0, -0.3, -pi/2, 0])
-	    mexe_junta([pi/2, 0.225, pi/3, -0.3, -pi/2, 0], max_cont=25)
-	    mexe_junta([pi/2, 0, 0, 0, -pi/2, 0])
-	    mexe_junta([pi/2, 0.174533, -0.523599, 0.349066, -pi/2, 0])
-	    mexe_junta([pi/2, pi/2, -pi/1.77, 0, -pi/2, 0])
-	    mexe_junta([pi/2, pi/2, -pi/2, 0, -pi/2, 0], max_cont=25)
-	    mexe_junta([pi/2, pi/2, -pi/1.77, 0, -pi/2, 0])
-	    mexe_junta([pi/2, 0, 0, 0, -pi/2, 0])
+def toca_fogo2():
+    mexe_junta([pi/2, 0, 0, 0, -pi/2, 0])
+    mexe_junta([pi/2, 0.225, 0, -0.3, -pi/2, 0])
+    mexe_junta([pi/2, 0.225, pi/3, -0.3, -pi/2, 0], max_cont=25)
+    mexe_junta([pi/2, 0, 0, 0, -pi/2, 0])
+    mexe_junta([pi/2, 0.174533, -0.523599, 0.349066, -pi/2, 0])
+    mexe_junta([pi/2, pi/2, -pi/1.77, 0, -pi/2, 0])
+    mexe_junta([pi/2, pi/2, -pi/2, 0, -pi/2, 0], max_cont=25)
+    mexe_junta([pi/2, pi/2, -pi/1.77, 0, -pi/2, 0])
+    mexe_junta([pi/2, 0, 0, 0, -pi/2, 0])
 
     # ---- Support Methods --------
 
