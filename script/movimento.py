@@ -89,15 +89,76 @@ class RosSelfDrive():
 
 	def moveRosi(self, msg):
 		if(msg.data == "start"):
+			self.rotateAntiClockwise(30)
 			print(1)
-			self.rotateClockwise(11)
+			self.moveForward(152)
 			print(2)
-			self.moveForward(110)
+			self.stop()
 			print(3)
-			# print(self.rotate, self.l)
-			self.rotateAntiClockwise(40)
+			self.rotateClockwise(14)
 			print(4)
-			self.moveForward(1000)
+			self.moveForward(224)
+			self.stop()
+			print(5)
+			#inserir movimento robo fogo 1
+			self.rotateAntiClockwise(6)
+			print(1)
+			self.moveForward(15)
+			print(2)
+			self.stop()
+			print(3)
+			self.rotateAntiClockwise(6)
+			print(4)
+			self.moveForward(180)
+			self.stop()
+			print(5)
+			self.rotateClockwise(2)
+			print ('Frente')
+			self.moveForward(20)
+			print ('Alinhar')
+			self.rotateClockwise(2.5)
+			print ('Frente')
+			self.moveForward(100)
+			self.stop()
+			#desvio de obstaculo 1
+			self.moveForward(50)
+			print(2)
+			self.stop()
+			print(3)
+			self.moveForward(300)
+			print ('Alinhar')
+			self.rotateAntiClockwise(2.5)
+			print ('Frente')
+			self.moveForward(100)
+			self.stop()
+			#desvio obstaculo 2
+			self.rotateClockwise(6)
+			self.moveForward(147)
+			self.stop()
+			print(3)
+			self.rotateAntiClockwise(6)
+			self.moveForward(50)
+			print ('Frente')
+			self.rotateAntiClockwise(3)
+			self.moveForward(30)
+			self.stop()
+			#reta da escada
+			self.moveForward(300)
+			self.stop()
+			self.rotateAntiClockwise(2)
+			self.moveForward(300)
+			self.stop()
+			print(3)
+			#chegando a escada
+			print(1)
+			self.moveForward(110)
+			self.stop()
+			print(3)
+			#inserir codigo de subida de escada
+			self.moveForward(100)
+			self.moveBackward(85)
+			#inserir codigo de descida
+
 
 		# print(msg.data)
 		# print(self.x, self.y, self.z)
@@ -365,4 +426,3 @@ if __name__ == "__main__":
     except Exception as erro:
         print(erro)
         pass
-
