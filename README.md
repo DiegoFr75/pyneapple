@@ -16,11 +16,15 @@ The simulator was conceived using Ubuntu 18.4.2, ROS Melodic and V-REP 3.6.2.
 1. Clone and download this repository package to your ROS Workspace folder.
 2. To create the package used, and its dependencies, type in a new terminal window:
 
+~~~
 $ catkin_create_pkg pyneapple rospy roscpp rosi_defy std_msgs message_generation
+~~~
 
 3. Go back to the root of catkin workspace and type in a terminal window:
 
+~~~
 $ catkin build
+~~~
 
 To compile your catkin workspace.
 
