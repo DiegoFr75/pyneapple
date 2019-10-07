@@ -89,61 +89,41 @@ class RosSelfDrive():
 		self.traction_command_list = RosiMovementArray()
 
 		rospy.spin()
-	def printTudo(self):
-		print(self.rotate, self.axes_lin, self.axes_ang)
-
+	
 	def moveRosi(self, msg):
 		if(msg.data == "start"):
 			self.rotateAntiClockwise(30)
-			print(1)
 			self.moveForward(152)
-			print(2)
 			self.stop()
-			print(3)
 			self.rotateClockwise(14)
-			print(4)
 			self.moveForward(224)
 			self.stop()
-			print(5)
 			#inserir movimento robo fogo 1
+			toca_fogo1()
 			self.rotateAntiClockwise(6)
-			print(1)
 			self.moveForward(15)
-			print(2)
 			self.stop()
-			print(3)
 			self.rotateAntiClockwise(6)
-			print(4)
 			self.moveForward(180)
 			self.stop()
-			print(5)
 			self.rotateClockwise(2)
-			print ('Frente')
 			self.moveForward(20)
-			print ('Alinhar')
 			self.rotateClockwise(2.5)
-			print ('Frente')
 			self.moveForward(100)
 			self.stop()
 			#desvio de obstaculo 1
 			self.moveForward(50)
-			print(2)
 			self.stop()
-			print(3)
 			self.moveForward(300)
-			print ('Alinhar')
 			self.rotateAntiClockwise(2.5)
-			print ('Frente')
 			self.moveForward(100)
 			self.stop()
 			#desvio obstaculo 2
 			self.rotateClockwise(6)
 			self.moveForward(147)
 			self.stop()
-			print(3)
 			self.rotateAntiClockwise(6)
 			self.moveForward(50)
-			print ('Frente')
 			self.rotateAntiClockwise(3)
 			self.moveForward(30)
 			self.stop()
@@ -153,13 +133,11 @@ class RosSelfDrive():
 			self.rotateAntiClockwise(2)
 			self.moveForward(300)
 			self.stop()
-			print(3)
 			#chegando a escada
-			print(1)
 			self.moveForward(110)
 			self.stop()
-			print(3)
 			#inserir codigo de subida de escada
+			climbStairs()
 			self.moveForward(100)
 			self.moveBackward(85)
 			#inserir codigo de descida
@@ -378,14 +356,14 @@ class RosSelfDrive():
 		self.axes_lin_saved += 0.1
 		if(self.axes_lin != 0):
 			self.axes_lin = self.axes_lin_saved
-		print("Velocidade atual: "+str(self.max_translational_speed*self.axes_lin_saved)+'m/s')
+		#print("Velocidade atual: "+str(self.max_translational_speed*self.axes_lin_saved)+'m/s')
 		self.assembleAndSendCommands()
 
 	def decreaseSpeed(self):
 		self.axes_lin_saved -= 0.1
 		if(self.axes_lin != 0):
 			self.axes_lin = self.axes_lin_saved
-		print("Velocidade atual: "+str(self.max_translational_speed*self.axes_lin_saved)+'m/s')
+		#print("Velocidade atual: "+str(self.max_translational_speed*self.axes_lin_saved)+'m/s')
 		self.assembleAndSendCommands()
 
 	def prepareToGoToFloor(self):
@@ -398,18 +376,15 @@ class RosSelfDrive():
 		# self.moveFrontArmsUp(getGrau(90))
 		self.moveForward(0)
 
-		print("1")
 		self.moveFrontArmsUp(4)
 		self.moveRearArmsDown(4)
 	
 		time.sleep(17)
 
-		print("2")
 		self.moveFrontArmsDown(15)
 		time.sleep(5)
 
 		# Descer braco de tras
-		print("3")
 		self.moveRearArmsUp(8)
 
 		time.sleep(10)
@@ -419,30 +394,26 @@ class RosSelfDrive():
 		
 		# print("bracos de tras Up")
 		# self.moveRearArmsDown(2)
-		print("4")
 		time.sleep(4)
 		self.moveFrontArmsDown(getGrau(120))
 
-		print("5")
 		self.moveRearArmsUp(1)
 
 		for i in range(30):
 			self.moveRearArmsDown(0.1)
 			time.sleep(0.2)
-			print("entrei")
 		
 		# print("6")
 		# self.moveFrontArmsDown(4)
-		print("7")
 		self.moveRearArmsDown(0)
 		time.sleep(25)
 		self.moveRearArmsUp(getGrau(180))
 	
 	# funções do código das juntas adicionadas aqui
 	def mexe_junta(position_list=[pi/2,0, 0, 0, pi/2, 0], max_cont=50):
-    pub = rospy.Publisher('/ur5/jointsPosTargetCommand', ManipulatorJoints, queue_size=10)
-    # rospy.init_node('mexe_junta', anonymous=True)
-    rate = rospy.Rate(10) # 10hz
+	    pub = rospy.Publisher('/ur5/jointsPosTargetCommand', ManipulatorJoints, queue_size=10)
+	    # rospy.init_node('mexe_junta', anonymous=True)
+	    rate = rospy.Rate(10) # 10hz
 
     cont = 0
     while not rospy.is_shutdown() and cont<max_cont:
@@ -465,70 +436,28 @@ class RosSelfDrive():
         rate.sleep()
 
 	def toca_fogo1():
-	    print("Zero")
 	    mexe_junta()
-	    print("Meio toque 1")
 	    mexe_junta([pi/2,-0.225, 0, 0.3, pi/2, 0])
-	    print("Meio toque 2")
 	    mexe_junta([pi/2,-0.225, -pi/28, 0.3, pi/2, 0])
-	    print("Meio toque 3")
 	    mexe_junta([pi/2,-0.38, -pi/28, 0.3, pi/2, 0])
-	    print("Toque alto")
 	    mexe_junta([pi/2,-0.48, -pi/23, 0.3, pi/2, 0], max_cont=25)
-	    print("Zero")
 	    mexe_junta()
-	    print("Meio toque 1")
 	    mexe_junta([pi/2, 0, pi/1.77, 0, pi/2, 0], max_cont=25)
 	    mexe_junta([pi/2,-pi/2, pi/1.7, 0, pi/2, 0])
-	    print("Toque baixo")
 	    mexe_junta([pi/2,-pi/2, pi/1.92, 0, pi/2, 0])
 	    mexe_junta([pi/2,-pi/2, pi/1.7, 0, pi/2, 0])
-	    print("Zero")
 	    mexe_junta()
 
 	def toca_fogo2():
-	    print("Zero")
 	    mexe_junta([pi/2, 0, 0, 0, -pi/2, 0])
-	    print("Meio toque")
 	    mexe_junta([pi/2, 0.225, 0, -0.3, -pi/2, 0])
-	    print("Toque alto")
 	    mexe_junta([pi/2, 0.225, pi/3, -0.3, -pi/2, 0], max_cont=25)
-	    print("Zero")
 	    mexe_junta([pi/2, 0, 0, 0, -pi/2, 0])
-	    print("Meio toque")
 	    mexe_junta([pi/2, 0.174533, -0.523599, 0.349066, -pi/2, 0])
-	    print("Meio toque 2")
 	    mexe_junta([pi/2, pi/2, -pi/1.77, 0, -pi/2, 0])
-	    print("Toque baixo")
 	    mexe_junta([pi/2, pi/2, -pi/2, 0, -pi/2, 0], max_cont=25)
-	    print("Pos toque")
 	    mexe_junta([pi/2, pi/2, -pi/1.77, 0, -pi/2, 0])
-	    print("Zero")
 	    mexe_junta([pi/2, 0, 0, 0, -pi/2, 0])
-		def climbStairs(self):
-			self.rotate = 0
-			self.moveForward(0)
-			self.moveFrontArmsUp(4)
-		
-			rospy.sleep(14.7)
-			self.moveFrontArmsDown(15)
-			
-			# Descer braco de tras
-			self.moveRearArmsUp(4)
-
-			rospy.sleep(10)
-			rospy.sleep(3)
-			self.moveRearArmsUp(1)
-
-			for i in range(30):
-				self.moveRearArmsDown(0.1)
-				rospy.sleep(0.2)
-		
-			self.moveRearArmsDown(0)
-			rospy.sleep(25)
-			self.moveFrontArmsDown(getGrau(50))
-			self.moveRearArmsUp(getGrau(90))
-			self.stopAndClose()
 
     # ---- Support Methods --------
 
@@ -542,9 +471,8 @@ class RosSelfDrive():
     
 if __name__ == "__main__":
     rospy.init_node('rosi_selfdrive', anonymous = True)
-    
+
     try:
 		node_obj = RosSelfDrive()
     except Exception as erro:
-        print(erro)
         pass
