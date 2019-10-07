@@ -141,6 +141,9 @@ class RosSelfDrive():
 			self.moveForward(100)
 			self.moveBackward(85)
 			#inserir codigo de descida
+			prepareToGoToFloor()
+			sleep(15)
+			backToFloor()
 
 
 
