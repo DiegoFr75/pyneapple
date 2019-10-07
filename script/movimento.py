@@ -90,60 +90,60 @@ class RosSelfDrive():
 
 		rospy.spin()
 	
-	def moveRosi(self, msg):
-		if(msg.data == "start"):
-			self.rotateAntiClockwise(30)
-			self.moveForward(152)
-			self.stop()
-			self.rotateClockwise(14)
-			self.moveForward(224)
-			self.stop()
-			#inserir movimento robo fogo 1
-			self.toca_fogo1()
-			self.rotateAntiClockwise(6)
-			self.moveForward(15)
-			self.stop()
-			self.rotateAntiClockwise(6)
-			self.moveForward(180)
-			self.stop()
-			self.rotateClockwise(2)
-			self.moveForward(20)
-			self.rotateClockwise(2.5)
-			self.moveForward(100)
-			self.stop()
-			#desvio de obstaculo 1
-			self.moveForward(50)
-			self.stop()
-			self.moveForward(300)
-			self.rotateAntiClockwise(2.5)
-			self.moveForward(100)
-			self.stop()
-			#desvio obstaculo 2
-			self.rotateClockwise(6)
-			self.moveForward(147)
-			self.stop()
-			self.rotateAntiClockwise(6)
-			self.moveForward(50)
-			self.rotateAntiClockwise(3)
-			self.moveForward(30)
-			self.stop()
-			#reta da escada
-			self.moveForward(300)
-			self.stop()
-			self.rotateAntiClockwise(2)
-			self.moveForward(300)
-			self.stop()
-			#chegando a escada
-			self.moveForward(110)
-			self.stop()
-			#inserir codigo de subida de escada
-			self.climbStairs()
-			self.moveForward(100)
-			self.moveBackward(85)
-			#inserir codigo de descida
-			prepareToGoToFloor()
-			sleep(15)
-			backToFloor()
+def moveRosi(self, msg):
+	if(msg.data == "start"):
+		self.rotateAntiClockwise(30)
+		self.moveForward(152)
+		self.stop()
+		self.rotateClockwise(14)
+		self.moveForward(224)
+		self.stop()
+		#inserir movimento robo fogo 1
+		self.toca_fogo1()
+		self.rotateAntiClockwise(6)
+		self.moveForward(15)
+		self.stop()
+		self.rotateAntiClockwise(6)
+		self.moveForward(180)
+		self.stop()
+		self.rotateClockwise(2)
+		self.moveForward(20)
+		self.rotateClockwise(2.5)
+		self.moveForward(100)
+		self.stop()
+		#desvio de obstaculo 1
+		self.moveForward(50)
+		self.stop()
+		self.moveForward(300)
+		self.rotateAntiClockwise(2.5)
+		self.moveForward(100)
+		self.stop()
+		#desvio obstaculo 2
+		self.rotateClockwise(6)
+		self.moveForward(147)
+		self.stop()
+		self.rotateAntiClockwise(6)
+		self.moveForward(50)
+		self.rotateAntiClockwise(3)
+		self.moveForward(30)
+		self.stop()
+		#reta da escada
+		self.moveForward(300)
+		self.stop()
+		self.rotateAntiClockwise(2)
+		self.moveForward(300)
+		self.stop()
+		#chegando a escada
+		self.moveForward(110)
+		self.stop()
+		#inserir codigo de subida de escada
+		self.climbStairs()
+		self.moveForward(100)
+		self.moveBackward(85)
+		#inserir codigo de descida
+		self.prepareToGoToFloor()
+		time.sleep(15)
+		self.backToFloor()
 
 
 
