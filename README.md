@@ -26,40 +26,40 @@ To compile your catkin workspace.
 
 ### ROSI publishes to:
 
-/direction
-/move_base/cancel
-/move_base/feedback
-/move_base/goal
-/move_base/result
-/move_base/status
-/rosi/arms_joints_position
-/rosi/command_arms_speed
-/rosi/command_kinect_joint
-/rosi/command_traction_speed
-/rosi/kniect_joint
+  - /direction
+  - /move_base/cancel
+  - /move_base/feedback
+  - /move_base/goal
+  - /move_base/result
+  - /move_base/status
+  - /rosi/arms_joints_position
+  - /rosi/command_arms_speed
+  - /rosi/command_kinect_joint
+  - /rosi/command_traction_speed
+  - /rosi/kniect_joint
 
-/rosout
-/rosout_agg
-/sensor/gps
-/sensor/hokuyo
-/sensor/imu
-/sensor/kinect_depth
-/sensor/kinect_info
-/sensor/kinect_rgb
-/sensor/ur5toolCam
-/sensor/velodyne
-/simulation/time
-/statistics
-/tf
-/ur5/forceTorqueSensorOutput
-/ur5/jointsPosTargetCommand
-/ur5/jointsPositionCurrentState
+  - /rosout
+  - /rosout_agg
+  - /sensor/gps
+  - /sensor/hokuyo
+  - /sensor/imu
+  - /sensor/kinect_depth
+  - /sensor/kinect_info
+  - /sensor/kinect_rgb
+  - /sensor/ur5toolCam
+  - /sensor/velodyne
+  - /simulation/time
+  - /statistics
+  - /tf
+  - /ur5/forceTorqueSensorOutput
+  - /ur5/jointsPosTargetCommand
+  - /ur5/jointsPositionCurrentState
 
 ### ROSI subcribes to:
 
-/sensor/hokuyo
-/sensor/gps
-/direction
-/ur5/forceTorqueSensorOutput
-/sensor/Kinect_rgb
+  - /sensor/hokuyo
+  - /sensor/gps
+  - /direction
+  - /ur5/forceTorqueSensorOutput
+  - /sensor/Kinect_rgb
 
