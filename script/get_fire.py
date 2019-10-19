@@ -50,9 +50,9 @@ def ta_pegando_fogo(imagem): # filtro para destacar a presenca de fogo
                 biggest_box = (x, y, w, h)
 
             # draw a green rectangle to visualize the bounding rect
-            cv2.rectangle(imagem, (x, y), (x+w, y+h), (0, 255, 0), 2)
-            cv2.circle(imagem, (x+w//2,y+w//2), 2, (0,0,255), 2)
-            cv2.imwrite('reginaldo.jpg', imagem)
+            # cv2.rectangle(imagem, (x, y), (x+w, y+h), (0, 255, 0), 2)
+            # cv2.circle(imagem, (x+w//2,y+w//2), 2, (0,0,255), 2)
+            # cv2.imwrite('reginaldo.jpg', imagem)
             # print(biggest_box)
             return x+w//2
 
