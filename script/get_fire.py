@@ -50,7 +50,7 @@ class FireDector:
 		contours = cv2.findContours(threshed_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 		# print(contours[1])
 		# cv2.imwrite('teste.jpg', contours)	
-		if contours != None:
+		if contours[1] != None:
 			biggest_box = (x, y, w, h) = cv2.boundingRect(contours[1][0])
 			first_in = True
 			for c in contours[1]:
