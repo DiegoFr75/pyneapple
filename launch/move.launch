@@ -1,0 +1,24 @@
+<launch>
+
+   <master auto="start"/>
+
+   <include file="$(find rosi_defy)/launch/load_parameters.launch" />
+   <include file="$(find rosi_defy)/launch/urdf_launcher.launch" />
+   <include file="$(find amcl)/examples/amcl_omni.launch" />
+
+
+   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+    <rosparam file="$(find pyneapple)/config/costmap_common_params.yaml" command="load" ns="global_costmap" /> 
+    <rosparam file="$(find pyneapple)/config/costmap_common_params.yaml" command="load" ns="local_costmap" />
+    <rosparam file="$(find pyneapple)/config/local_costmap_params.yaml" command="load" />
+    <rosparam file="$(find pyneapple)/config/global_costmap_params.yaml" command="load" /> 
+    <rosparam file="$(find pyneapple)/config/base_local_planner_params.yaml" command="load" />
+ </node>
+
+	<node pkg="pyneapple" type="rosi_keyboard.py" name = "rosi_selfdrive" />
+	<node pkg="pyneapple" type="odometry.py" name= "odometry" />
+	<node pkg="pyneapple" type="odometry_teste.py" name= "odom" />
+	<node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="laser" />
+		<remap from="cloud_in" to="/sensor/velodyne"/>
+        <remap from="scan" to="/scan"/>
+</launch> 
