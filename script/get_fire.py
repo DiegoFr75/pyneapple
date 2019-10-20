@@ -49,8 +49,9 @@ class FireDector:
 		
 		contours = cv2.findContours(threshed_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 		# print(contours[1])
-		# cv2.imwrite('teste.jpg', contours)	
-		if contours[1] != None:
+		# cv2.imwrite('teste.jpg', contours)
+		# print(contours[2])	
+		if len(contours[1]) > 0:
 			biggest_box = (x, y, w, h) = cv2.boundingRect(contours[1][0])
 			first_in = True
 			for c in contours[1]:
@@ -80,9 +81,8 @@ class FireDector:
 		
 		cv_image = cv2.flip(cv_image,1)
 		fire_center = self.ta_pegando_fogo(cv_image)
-		
-		# Publicar aqui como string
-		# self.pubFire.publish()
+
+		self.pubFire.publish(str(fire_center))
 
 
 if __name__ == '__main__':
