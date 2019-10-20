@@ -62,6 +62,10 @@ To compile your catkin workspace.
     /ur5/jointsPositionCurrentState - <rosi_defy/ManipulatorJoints> - UR-5 robotic manipulator joints current position.
 
     /ur5/forceTorqueSensorOutput - <geometry_msgs/TwistStamped> - UR-5 Force/Torque sensor output. It gives two vector of linear and angular forces and torques, respectively. Axis order is x, y, z.
+    
+    /odom - <nav_msgs/Odometry> - Pose and Orientation of the base_link in relation to the world.
+    
+    /scan - <sensor_msgs/LaserScan> - Transform the PointCloud2 message into LaserScan message
 
 
 ### ROSI subcribes to:
