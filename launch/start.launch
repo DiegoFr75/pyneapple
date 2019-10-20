@@ -1,3 +1,0 @@
-<launch>
-	<node pkg="pyneapple" type="movimento.py" name = "rosi_selfdrive" />
-</launch>
